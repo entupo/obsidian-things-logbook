@@ -14,12 +14,7 @@ import {
   ThingsLogbookSettingsTab,
 } from "./settings";
 
-import {
-  buildTasksFromSQLRecords,
-  getChecklistItemsFromThingsLogbook,
-  getTasksFromThingsLogbook,
-  ITask,
-} from "./things";
+import type { ITask } from "./things";
 import { groupBy, isMacOS, updateSection } from "./textUtils";
 
 declare global {
@@ -61,9 +56,7 @@ export default class ThingsLogbookPlugin extends Plugin {
       if (this.app.workspace.layoutReady) {
         this.scheduleNextSync();
       } else {
-        this.registerEvent(
-          this.app.workspace.on("layout-ready", this.scheduleNextSync)
-        );
+        this.app.workspace.onLayoutReady(this.scheduleNextSync);
       }
     }
   }
@@ -108,6 +101,12 @@ export default class ThingsLogbookPlugin extends Plugin {
   }
 
   async syncLogbook(): Promise<void> {
+    const {
+      buildTasksFromSQLRecords,
+      getChecklistItemsFromThingsLogbook,
+      getTasksFromThingsLogbook,
+    } = await import("./things");
+
     const logbookRenderer = new LogbookRenderer(this.app, this.options);
     const dailyNotes = getAllDailyNotes();
     const latestSyncTime = this.options.latestSyncTime || 0;
@@ -119,7 +118,7 @@ export default class ThingsLogbookPlugin extends Plugin {
       checklistRecords = await getChecklistItemsFromThingsLogbook(
         latestSyncTime
       );
-    } catch (err) {
+    } catch (_err) {
       new Notice("Things Logbook sync failed");
       return;
     }

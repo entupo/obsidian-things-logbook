@@ -5,7 +5,8 @@ export function getEditorForFile(app: App, file: TFile): Editor | null {
   let editor = null;
   app.workspace.iterateAllLeaves((leaf) => {
     if (leaf.view instanceof MarkdownView && leaf.view.file === file) {
-      editor = leaf.view.sourceMode.cmEditor;
+      editor = (leaf.view as unknown as { sourceMode?: { cmEditor?: Editor } })
+        .sourceMode?.cmEditor;
     }
   });
   return editor;

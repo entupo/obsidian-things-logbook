@@ -1,19 +1,23 @@
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import typescript from "@rollup/plugin-typescript";
-import { env } from "process";
+const resolve = require("@rollup/plugin-node-resolve");
+const commonjs = require("@rollup/plugin-commonjs");
+const typescript = require("@rollup/plugin-typescript");
 
-export default {
+module.exports = {
   input: "src/index.ts",
   output: {
     format: "cjs",
     file: "main.js",
     exports: "default",
+    inlineDynamicImports: true,
   },
   external: ["obsidian", "fs", "os", "path"],
   plugins: [
-    typescript({ sourceMap: env.env === "DEV" }),
-    resolve({
+    typescript({
+      sourceMap: false,
+      inlineSourceMap: false,
+      inlineSources: false,
+    }),
+    resolve.nodeResolve({
       browser: true,
     }),
     commonjs(),

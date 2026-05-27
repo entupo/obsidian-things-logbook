@@ -1,11 +1,9 @@
-import * as os from "os";
-import * as fs from "fs";
-import * as path from "path";
-
 import { THINGS_DB_PATH_START, THINGS_DB_PATH_END } from "./constants";
 import { querySqliteDB } from "./sqlite";
 
 export const TASK_FETCH_LIMIT = 1000;
+
+declare const require: (id: string) => unknown;
 
 export interface ISubTask {
   completed: boolean;
@@ -47,9 +45,22 @@ export interface IChecklistItemRecord {
 
 // Info on how to find the Things db file here:
 // https://culturedcode.com/things/support/articles/2982272/
-const baseDir = THINGS_DB_PATH_START.replace("~", os.homedir());
-const dataPath = fs.readdirSync(baseDir).find((file) => file.startsWith("ThingsData")) ?? '';
-const thingsSqlitePath = path.join(baseDir, dataPath, THINGS_DB_PATH_END);
+function getThingsSqlitePath(): string {
+  const os = require("os") as typeof import("os");
+  const fs = require("fs") as typeof import("fs");
+  const path = require("path") as typeof import("path");
+
+  const baseDir = THINGS_DB_PATH_START.replace("~", os.homedir());
+  const dataPath = fs
+    .readdirSync(baseDir)
+    .find((file) => file.startsWith("ThingsData"));
+
+  if (!dataPath) {
+    throw new ThingsSQLiteSyncError("ThingsData directory not found");
+  }
+
+  return path.join(baseDir, dataPath, THINGS_DB_PATH_END);
+}
 
 export class ThingsSQLiteSyncError extends Error {}
 
@@ -101,6 +112,7 @@ export function buildTasksFromSQLRecords(
 async function getTasksFromThingsDb(
   latestSyncTime: number
 ): Promise<ITaskRecord[]> {
+  const thingsSqlitePath = getThingsSqlitePath();
   return querySqliteDB<ITaskRecord>(
     thingsSqlitePath,
     `SELECT
@@ -137,6 +149,7 @@ async function getTasksFromThingsDb(
 async function getChecklistItemsThingsDb(
   latestSyncTime: number
 ): Promise<IChecklistItemRecord[]> {
+  const thingsSqlitePath = getThingsSqlitePath();
   return querySqliteDB<IChecklistItemRecord>(
     thingsSqlitePath,
     `SELECT
