@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint .",
-    "build": "npm run lint && rollup -c",
-    "build:nolint": "rollup -c",
+    "build": "npm run lint && rollup -c && node copy-to-vault.mjs",
+    "build:nolint": "rollup -c && node copy-to-vault.mjs",
     "test:watch": "yarn test -- --watch"
   },
   "dependencies": {
